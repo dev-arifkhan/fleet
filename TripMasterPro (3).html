@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TripMaster Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+[data-theme="dark"]{--bg:#0B1120;--bg2:#111827;--bg3:#1A2235;--bg4:#1F2A3D;--bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.12);--txt:#F1F5F9;--txt2:#94A3B8;--txt3:#4B6078;--shdw:0 1px 3px rgba(0,0,0,.5),0 4px 16px rgba(0,0,0,.3);--shdwlg:0 8px 32px rgba(0,0,0,.5);--inbg:rgba(255,255,255,.04);--infoc:rgba(59,130,246,.08);--selbg:#1A2235;--pbg:rgba(239,68,68,.08);--pbdr:rgba(239,68,68,.2)}
+[data-theme="light"]{--bg:#F1F5F9;--bg2:#FFFFFF;--bg3:#F8FAFC;--bg4:#EEF2F7;--bdr:rgba(0,0,0,.07);--bdr2:rgba(0,0,0,.12);--txt:#0F172A;--txt2:#64748B;--txt3:#CBD5E1;--shdw:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);--shdwlg:0 8px 32px rgba(0,0,0,.12);--inbg:#F8FAFC;--infoc:rgba(59,130,246,.06);--selbg:#FFFFFF;--pbg:rgba(239,68,68,.06);--pbdr:rgba(239,68,68,.18)}
+:root{--blue:#3B82F6;--bdim:rgba(59,130,246,.12);--bbdr:rgba(59,130,246,.25);--teal:#14B8A6;--tdim:rgba(20,184,166,.12);--tbdr:rgba(20,184,166,.25);--em:#10B981;--emdim:rgba(16,185,129,.12);--embdr:rgba(16,185,129,.25);--red:#EF4444;--rdim:rgba(239,68,68,.1);--rbdr:rgba(239,68,68,.22);--amb:#F59E0B;--adim:rgba(245,158,11,.1);--abdr:rgba(245,158,11,.22);--navh:66px;--r:14px;--rsm:10px;--rxs:7px;--tr:.18s cubic-bezier(.4,0,.2,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);-webkit-tap-highlight-color:transparent;overscroll-behavior:none;transition:background var(--tr),color var(--tr)}
+#app{height:100dvh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg);position:relative;overflow:hidden}
+.screen{display:none;flex-direction:column;height:calc(100dvh - var(--navh));overflow:hidden}
+.screen.active{display:flex}
+.ss{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 24px}
+.ss::-webkit-scrollbar{display:none}
+/* TOPBAR */
+.tb{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2);transition:background var(--tr),border-color var(--tr)}
+.tbt{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
+.tbt span{color:var(--blue)}
+.tbs{font-size:.6rem;font-weight:500;color:var(--txt2);letter-spacing:.6px;text-transform:uppercase;margin-top:1px}
+.tbr{display:flex;gap:8px}
+.icb{width:36px;height:36px;border-radius:10px;background:var(--bg3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--tr);color:var(--txt2)}
+.icb:active{transform:scale(.88);background:var(--bg4)}
+.icb svg{width:17px;height:17px}
+.bkb{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--bdr);cursor:pointer;font-size:.78rem;font-weight:600;color:var(--txt2);transition:all var(--tr)}
+.bkb:active{transform:scale(.94)}
+.bkb svg{width:16px;height:16px}
+/* BOTTOM NAV */
+#bnav{height:var(--navh);background:var(--bg2);border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-around;padding:0 4px;flex-shrink:0;transition:background var(--tr),border-color var(--tr)}
+.ni{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 12px;cursor:pointer;flex:1;position:relative}
+.nii{color:var(--txt3);transition:color var(--tr),transform var(--tr)}
+.nii svg{width:22px;height:22px}
+.nil{font-size:.57rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--txt3);transition:color var(--tr)}
+.ni.active .nii{color:var(--blue);transform:translateY(-1px)}
+.ni.active .nil{color:var(--blue)}
+.ni.active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:28px;height:2.5px;background:var(--blue);border-radius:2px 2px 0 0}
+.fab{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#3B82F6,#2563EB);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(59,130,246,.45);flex-shrink:0;transition:transform var(--tr),box-shadow var(--tr);color:#fff}
+.fab:active{transform:scale(.88);box-shadow:0 2px 10px rgba(59,130,246,.3)}
+.fab svg{width:24px;height:24px}
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--shdw);transition:background var(--tr),border-color var(--tr)}
+.chd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bdr)}
+.ctl{font-size:.72rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--txt2);display:flex;align-items:center;gap:7px}
+.ctl svg{width:14px;height:14px}
+.cbdy{padding:14px 16px}
+/* VEHICLE CARD */
+.vc{border-radius:var(--r);padding:16px;cursor:pointer;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:10px;position:relative;overflow:hidden;transition:all var(--tr);box-shadow:var(--shdw)}
+.vc:active{transform:scale(.98)}
+.vcs{position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#3B82F6,#14B8A6)}
+.vcbg{position:absolute;right:-10px;top:50%;transform:translateY(-50%);opacity:.04;color:var(--blue)}
+.vcbg svg{width:80px;height:80px}
+.vreg{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:500;color:var(--blue);letter-spacing:2px;margin-bottom:3px}
+.vmeta{font-size:.7rem;color:var(--txt2)}
+.vstats{display:flex;gap:22px;margin-top:13px}
+.vsv{font-family:'DM Mono',monospace;font-size:.92rem;font-weight:500;margin-bottom:2px}
+.vsl{font-size:.6rem;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px}
+/* TRIP ITEM */
+.ti{padding:13px 16px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:background var(--tr)}
+.ti:last-child{border-bottom:none}
+.ti:active{background:var(--bg3)}
+.tih{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.tireg{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;color:var(--blue);letter-spacing:1.5px}
+.tidat{font-size:.68rem;color:var(--txt2)}
+.tirt{font-size:.9rem;font-weight:600;color:var(--txt);margin-bottom:6px}
+.tift{display:flex;align-items:center;gap:10px}
+.tiam{font-family:'DM Mono',monospace;font-size:.75rem}
+.dot{color:var(--txt3);font-size:.6rem}
+/* BADGES */
+.badge{font-size:.56rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:inline-block}
+.bact{background:var(--tdim);color:var(--teal);border:1px solid var(--tbdr)}
+.bdone{background:var(--emdim);color:var(--em);border:1px solid var(--embdr)}
+.pill{font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center}
+.padv{background:var(--adim);color:var(--amb);border:1px solid var(--abdr)}
+.pbal{background:var(--emdim);color:var(--em);border:1px solid var(--embdr)}
+/* SECTION HEADING */
+.sch{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.sch:first-child{margin-top:0}
+.sch::after{content:'';flex:1;height:1px;background:var(--bdr)}
+/* STAT BOXES */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.sb{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 14px 12px;box-shadow:var(--shdw);transition:background var(--tr),border-color var(--tr)}
+.sbi{margin-bottom:8px}
+.sbi svg{width:18px;height:18px}
+.sbv{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:500;margin-bottom:3px}
+.sbl{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--txt2)}
+/* ALERT BAR */
+.abar{border-radius:var(--rsm);padding:11px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.abarv{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500}
+.abarl{font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:7px}
+.abarl svg{width:14px;height:14px;flex-shrink:0}
+.abr{background:var(--pbg);border:1px solid var(--pbdr);color:var(--red)}
+.abb{background:var(--bdim);border:1px solid var(--bbdr);color:var(--blue)}
+/* FORM */
+.fsec{margin-bottom:20px}
+.fshd{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.fshd svg{width:14px;height:14px}
+.fshd::after{content:'';flex:1;height:1px;background:var(--blue);opacity:.2}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:.67rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--txt2);margin-bottom:5px}
+.fi,.fsel,.fta{width:100%;padding:10px 13px;background:var(--inbg);border:1px solid var(--bdr);border-radius:var(--rsm);color:var(--txt);font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color var(--tr),background var(--tr);-webkit-appearance:none}
+.fi:focus,.fsel:focus{border-color:var(--blue);background:var(--infoc)}
+.fsel{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.fsel option{background:var(--selbg)}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:var(--rsm);font-family:'Plus Jakarta Sans',sans-serif;font-size:.83rem;font-weight:700;letter-spacing:.3px;cursor:pointer;border:none;outline:none;transition:all var(--tr);white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn svg{width:15px;height:15px}
+.btnp{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;box-shadow:0 3px 14px rgba(59,130,246,.35)}
+.btns{background:var(--bg3);color:var(--txt);border:1px solid var(--bdr)}
+.btnd{background:var(--rdim);color:var(--red);border:1px solid var(--rbdr)}
+.btng{background:var(--emdim);color:var(--em);border:1px solid var(--embdr)}
+.btnsm{padding:7px 13px;font-size:.76rem;border-radius:var(--rxs)}
+.btnfw{width:100%}
+.btnoa{background:transparent;color:var(--blue);border:1.5px dashed var(--bbdr)}
+.btnot{background:transparent;color:var(--teal);border:1.5px dashed var(--tbdr)}
+/* ENTRY LIST */
+.elist{display:flex;flex-direction:column;gap:8px}
+.eitem{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rxs);padding:9px 11px}
+.enum{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--txt3);width:20px;flex-shrink:0;font-weight:500}
+.eitem input{flex:1;background:transparent;border:none;color:var(--txt);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;min-width:0}
+.eitem input::placeholder{color:var(--txt3)}
+.edel{width:26px;height:26px;border-radius:8px;background:var(--rdim);border:1px solid var(--rbdr);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--tr)}
+.edel:active{transform:scale(.88)}
+.edel svg{width:12px;height:12px}
+/* LEG CARD */
+.lcard{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rsm);padding:14px;margin-bottom:10px;position:relative}
+.ltag{font-size:.62rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px;margin-bottom:12px}
+.ltag svg{width:10px;height:10px}
+.ltup{background:var(--bdim);color:var(--blue);border:1px solid var(--bbdr)}
+.ltdn{background:var(--tdim);color:var(--teal);border:1px solid var(--tbdr)}
+.lcalc{font-family:'DM Mono',monospace;font-size:.76rem;color:var(--txt2);margin-top:10px;padding:8px 12px;background:var(--bg4);border-radius:var(--rxs);display:flex;justify-content:space-between;align-items:center}
+.lcalcr{color:var(--blue);font-weight:500}
+.dleg{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:8px;background:var(--rdim);border:1px solid var(--rbdr);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--tr)}
+.dleg:active{transform:scale(.88)}
+.dleg svg{width:12px;height:12px}
+/* DIARY */
+.diary{font-family:'DM Mono',monospace;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:16px;margin-bottom:12px;border-left:3px solid var(--blue)}
+.dhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.ddate{font-size:.8rem;font-weight:500;color:var(--blue)}
+.dveh{font-size:.78rem;letter-spacing:2px;color:var(--txt2)}
+.dr{display:flex;justify-content:space-between;align-items:baseline;font-size:.77rem;padding:2.5px 0}
+.drl{color:var(--txt2)}
+.drv{color:var(--txt);font-weight:500}
+.dri{padding-left:14px}
+.dri .drl{color:var(--txt3)}
+.dri .drv{color:var(--txt2)}
+.drtot .drl,.drtot .drv{color:var(--teal);font-weight:500;font-size:.84rem;border-top:1px solid var(--bdr);padding-top:8px;margin-top:8px}
+.drpro .drl,.drpro .drv{color:var(--em);font-weight:700;font-size:.88rem}
+.drlos .drl,.drlos .drv{color:var(--red);font-weight:700;font-size:.88rem}
+.drexp .drv{color:var(--red)}
+.ddiv{border:none;border-top:1px dashed var(--bdr);margin:7px 0}
+/* PAYMENT */
+.pbar{height:5px;background:var(--bg4);border-radius:3px;margin:10px 0;overflow:hidden}
+.pbarf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--em));transition:width .6s ease}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid var(--bdr)}
+.prowl{font-size:.79rem;color:var(--txt2)}
+.prowv{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500}
+/* DETAIL ROW */
+.drow{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--bdr)}
+.drowl{font-size:.8rem;color:var(--txt2)}
+.drowv{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--txt)}
+/* FILTER CHIPS */
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 14px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.4px;cursor:pointer;white-space:nowrap;flex-shrink:0;background:var(--bg2);border:1px solid var(--bdr);color:var(--txt2);transition:all var(--tr)}
+.chip.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 10px rgba(59,130,246,.3)}
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--txt3)}
+.empty svg{width:48px;height:48px;margin-bottom:12px;opacity:.4}
+.etxt{font-size:.85rem;color:var(--txt2);line-height:1.6}
+/* THEME TOGGLE */
+.ttog{width:36px;height:36px;border-radius:10px;background:var(--bg3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--tr);color:var(--txt2)}
+.ttog:active{transform:scale(.88)}
+.ttog svg{width:17px;height:17px}
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--navh) + 14px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:24px;padding:9px 20px;font-size:.82rem;font-weight:600;color:var(--txt);opacity:0;transition:all .28s;z-index:999;white-space:nowrap;max-width:88vw;box-shadow:var(--shdwlg)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* MODAL */
+#mol{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:flex-end}
+#mol.show{display:flex}
+.msh{background:var(--bg2);border-radius:18px 18px 0 0;border-top:1px solid var(--bdr);width:100%;max-height:80dvh;overflow-y:auto;padding:20px 16px 32px;animation:su .26s cubic-bezier(.4,0,.2,1)}
+.msh::-webkit-scrollbar{display:none}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mttl{font-size:1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.mcls{cursor:pointer;width:30px;height:30px;border-radius:8px;background:var(--bg3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;color:var(--txt2);transition:all var(--tr);flex-shrink:0}
+.mcls svg{width:14px;height:14px}
+.mcls:active{transform:scale(.88)}
+/* UTILS */
+.sep{border:none;border-top:1px solid var(--bdr);margin:10px 0}
+.mono{font-family:'DM Mono',monospace}
+.cbl{color:var(--blue)}.cem{color:var(--em)}.crd{color:var(--red)}.cam{color:var(--amb)}.ctl2{color:var(--teal)}.csb{color:var(--txt2)}.cdm{color:var(--txt3)}
+.fw7{font-weight:700}.fsm{font-size:.78rem}.fxs{font-size:.7rem}
+.ahint{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--blue);text-align:right;margin-top:4px}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- DASHBOARD -->
+<div id="s-dash" class="screen active">
+  <div class="tb">
+    <div><div class="tbt">Trip<span>Master</span></div><div class="tbs">Goods Transport Manager</div></div>
+    <div class="tbr">
+      <div class="icb" onclick="showScreen('s-reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+      <div class="ttog" onclick="toggleTheme()" id="tbtn">
+        <svg id="id0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <svg id="il0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="ss">
+    <div class="sgrid" id="ds"></div>
+    <div id="dp"></div>
+    <div class="sch">Fleet Overview</div>
+    <div id="vc"></div>
+    <div class="sch">Recent Trips</div>
+    <div class="card" id="rl"></div>
+  </div>
+</div>
+<!-- TRIPS LIST -->
+<div id="s-trips" class="screen">
+  <div class="tb">
+    <div><div class="tbt">All <span>Trips</span></div></div>
+    <div class="ttog" onclick="toggleTheme()">
+      <svg id="id1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      <svg id="il1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    </div>
+  </div>
+  <div style="padding:12px 16px 0;flex-shrink:0;">
+    <div class="chips" id="vf">
+      <div class="chip active" data-v="all" onclick="filterTrips('all')">All Trips</div>
+      <div class="chip" data-v="WB53C6771" onclick="filterTrips('WB53C6771')">WB53C6771</div>
+      <div class="chip" data-v="WB53C7823" onclick="filterTrips('WB53C7823')">WB53C7823</div>
+      <div class="chip" data-v="active" onclick="filterTrips('active')">Active</div>
+      <div class="chip" data-v="completed" onclick="filterTrips('completed')">Completed</div>
+    </div>
+  </div>
+  <div class="ss" style="padding-top:4px;"><div class="card" id="at"></div></div>
+</div>
+<!-- FORM -->
+<div id="s-form" class="screen">
+  <div class="tb">
+    <div class="bkb" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back</div>
+    <div class="tbt" id="fttl">New <span>Trip</span></div>
+    <div style="width:70px;"></div>
+  </div>
+  <div class="ss">
+    <form id="tf" novalidate>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Basic Info</div>
+        <div class="fg"><label class="fl">Vehicle Registration</label>
+          <select class="fsel" id="fv"><option value="">— Select Vehicle —</option><option value="WB53C6771">WB53C6771</option><option value="WB53C7823">WB53C7823</option></select></div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Start Date</label><input type="date" class="fi" id="fd"></div>
+          <div class="fg"><label class="fl">Status</label><select class="fsel" id="fst"><option value="active">Active</option><option value="completed">Completed</option></select></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 12l4-4m-4 4 4 4M21 12l-4-4m4 4-4 4"/></svg>Trip Legs</div>
+        <div id="lc"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button type="button" class="btn btnoa btnsm" onclick="addLeg('up')" style="flex:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="m18 15-6-6-6 6"/></svg>UP Trip</button>
+          <button type="button" class="btn btnot btnsm" onclick="addLeg('down')" style="flex:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="m6 9 6 6 6-6"/></svg>DOWN Trip</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Fixed Expenses</div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Driver Salary (Rs.)</label><input type="number" class="fi" id="fdr" placeholder="0" min="0"></div>
+          <div class="fg"><label class="fl">Fastag (Rs.)</label><input type="number" class="fi" id="fft" placeholder="0" min="0"></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Commission (Rs.)</label><input type="number" class="fi" id="fcm" placeholder="0" min="0"></div>
+          <div class="fg"><label class="fl">DEF / AdBlue (Rs.)</label><input type="number" class="fi" id="fdf" placeholder="0" min="0"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V8l9-6 9 6v14M9 22V12h6v10"/></svg>Diesel Entries</div>
+        <div style="font-size:.73rem;color:var(--txt2);margin-bottom:10px;line-height:1.5;">Add each fill-up separately — total is summed automatically.</div>
+        <div id="dl" class="elist"></div>
+        <div id="dt" class="ahint" style="margin-top:6px;"></div>
+        <button type="button" class="btn btnoa btnsm btnfw" style="margin-top:10px;" onclick="addDiesel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg>Add Diesel Entry</button>
+      </div>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Other Expenses</div>
+        <div id="ol" class="elist"></div>
+        <button type="button" class="btn btns btnsm btnfw" style="margin-top:10px;" onclick="addOther()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg>Add Other Expense</button>
+      </div>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Payments Received</div>
+        <div style="font-size:.73rem;color:var(--txt2);margin-bottom:10px;line-height:1.5;">Record advance and balance payments as they arrive.</div>
+        <div id="pl" class="elist"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button type="button" class="btn btnsm" onclick="addPay('advance')" style="flex:1;background:var(--adim);color:var(--amb);border:1px solid var(--abdr)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg>Advance</button>
+          <button type="button" class="btn btng btnsm" onclick="addPay('balance')" style="flex:1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg>Balance</button>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fshd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Notes (Optional)</div>
+        <textarea class="fi fta" id="fn" rows="3" placeholder="Additional notes, remarks..." style="resize:none;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <button type="button" class="btn btns" style="flex:1" onclick="goBack()">Cancel</button>
+        <button type="button" class="btn btnp" style="flex:2" onclick="saveTrip()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13"/><polyline points="7,3 7,8 15,8"/></svg>Save Trip</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- DETAIL -->
+<div id="s-detail" class="screen">
+  <div class="tb">
+    <div class="bkb" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back</div>
+    <div id="dveh" style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--blue);letter-spacing:2px;font-weight:500;"></div>
+    <div class="tbr">
+      <div class="icb" id="dedit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+      <div class="icb" id="ddel" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
+    </div>
+  </div>
+  <div class="ss" id="dc"></div>
+</div>
+<!-- REPORTS -->
+<div id="s-reports" class="screen">
+  <div class="tb">
+    <div class="bkb" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back</div>
+    <div class="tbt">Trip <span>Reports</span></div>
+    <div class="icb" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+  </div>
+  <div style="padding:12px 16px 0;flex-shrink:0;">
+    <div class="chips" id="pch">
+      <div class="chip active" data-p="all" onclick="setPeriod('all')">All Time</div>
+      <div class="chip" data-p="month" onclick="setPeriod('month')">This Month</div>
+      <div class="chip" data-p="3month" onclick="setPeriod('3month')">3 Months</div>
+      <div class="chip" data-p="year" onclick="setPeriod('year')">This Year</div>
+    </div>
+  </div>
+  <div class="ss" style="padding-top:4px;"><div id="rc"></div></div>
+</div>
+<!-- BOTTOM NAV -->
+<nav id="bnav">
+  <div class="ni active" data-s="s-dash" onclick="showScreen('s-dash')">
+    <div class="nii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+    <div class="nil">Home</div>
+  </div>
+  <div class="ni" data-s="s-trips" onclick="showScreen('s-trips')">
+    <div class="nii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div>
+    <div class="nil">Trips</div>
+  </div>
+  <div class="fab" onclick="openNewTrip()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+  <div class="ni" data-s="s-reports" onclick="showScreen('s-reports')">
+    <div class="nii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <div class="nil">Reports</div>
+  </div>
+  <div class="ni" onclick="showSettings()">
+    <div class="nii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+    <div class="nil">Settings</div>
+  </div>
+</nav>
+</div>
+<div id="toast"></div>
+<div id="mol"><div class="msh" id="mc"></div></div>
+<script>
+const XI = {
+  x:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  truck:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  chart:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  money:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+  warn:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  drop:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+  card:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>`,
+  note:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  edit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  chk:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>`,
+  trips:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>`,
+  clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>`,
+  dl:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+};
+// DATA
+const SK='tripmaster_v2';const VEHS=['WB53C6771','WB53C7823'];
+const load=()=>{try{return JSON.parse(localStorage.getItem(SK))||{trips:[]}}catch{return{trips:[]}}};
+const save=d=>localStorage.setItem(SK,JSON.stringify(d));
+const getTrips=()=>load().trips;
+const saveTrips=ts=>{const d=load();d.trips=ts;save(d)};
+const uid=()=>Math.random().toString(36).substr(2,9)+Date.now().toString(36);
+// FORMAT
+const fmt=n=>{if(!n&&n!==0)return'Rs.0';return'Rs.'+Math.round(n).toLocaleString('en-IN')};
+const fmtN=n=>{if(!n)return'0';return Number(n).toLocaleString('en-IN')};
+const fmtD=s=>{if(!s)return'-';const d=new Date(s);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'})};
+const fmtDd=s=>{if(!s)return'-';const d=new Date(s);return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`};
+// CALC
+function calcT(t){
+  const rev=(t.legs||[]).reduce((s,l)=>s+(parseFloat(l.qty)||0)*(parseFloat(l.rate)||0),0);
+  const ex=t.expenses||{};
+  const diesel=(ex.diesel||[]).reduce((s,d)=>s+(parseFloat(d.amt)||0),0);
+  const others=(ex.others||[]).reduce((s,o)=>s+(parseFloat(o.amt)||0),0);
+  const fixed=(parseFloat(ex.driver)||0)+(parseFloat(ex.fastag)||0)+(parseFloat(ex.com)||0)+(parseFloat(ex.def)||0);
+  const totalExp=fixed+diesel+others;
+  const profit=rev-totalExp;
+  const recd=(t.payments||[]).reduce((s,p)=>s+(parseFloat(p.amt)||0),0);
+  const pending=rev-recd;
+  return{rev,totalExp,diesel,others,fixed,profit,recd,pending}
+}
+// THEME
+let isDark=localStorage.getItem('tm_theme')!=='light';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  [0,1].forEach(n=>{
+    const sd=document.getElementById('id'+n),sl=document.getElementById('il'+n);
+    if(sd)sd.style.display=isDark?'none':'block';
+    if(sl)sl.style.display=isDark?'block':'none';
+  });
+}
+function toggleTheme(){isDark=!isDark;localStorage.setItem('tm_theme',isDark?'dark':'light');applyTheme()}
+// NAV
+let curScreen='s-dash',navHistory=[],editId=null,curFilter='all',period='all';
+function showScreen(id,push=true){
+  if(push&&curScreen!==id)navHistory.push(curScreen);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  curScreen=id;
+  document.querySelectorAll('.ni[data-s]').forEach(n=>n.classList.remove('active'));
+  const ni=document.querySelector(`.ni[data-s="${id}"]`);if(ni)ni.classList.add('active');
+  if(id==='s-dash')renderDash();
+  else if(id==='s-trips')renderTrips();
+  else if(id==='s-reports')renderReports();
+}
+function goBack(){const prev=navHistory.length>0?navHistory.pop():'s-dash';showScreen(prev,false)}
+// TOAST
+let tT;function toast(msg,dur=2600){clearTimeout(tT);const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');tT=setTimeout(()=>t.classList.remove('show'),dur)}
+// MODAL
+function modal(html){document.getElementById('mc').innerHTML=html;document.getElementById('mol').classList.add('show')}
+function closeModal(){document.getElementById('mol').classList.remove('show')}
+document.getElementById('mol').addEventListener('click',function(e){if(e.target===this)closeModal()});
+// DASHBOARD
+function renderDash(){
+  const trips=getTrips();
+  const rev=trips.reduce((s,t)=>s+calcT(t).rev,0);
+  const profit=trips.reduce((s,t)=>s+calcT(t).profit,0);
+  const active=trips.filter(t=>t.status==='active').length;
+  const pending=trips.reduce((s,t)=>s+Math.max(0,calcT(t).pending),0);
+  document.getElementById('ds').innerHTML=`
+    <div class="sb"><div class="sbi cbl">${XI.trips}</div><div class="sbv cbl">${trips.length}</div><div class="sbl">Total Trips</div></div>
+    <div class="sb"><div class="sbi ctl2">${XI.clock}</div><div class="sbv ctl2">${active}</div><div class="sbl">Active Trips</div></div>
+    <div class="sb"><div class="sbi cem">${XI.money}</div><div class="sbv cem" style="font-size:.82rem">${fmt(rev)}</div><div class="sbl">Revenue</div></div>
+    <div class="sb"><div class="sbi" style="color:${profit>=0?'var(--em)':'var(--red)'}">${XI.chart}</div><div class="sbv" style="color:${profit>=0?'var(--em)':'var(--red)'};font-size:.82rem">${fmt(profit)}</div><div class="sbl">Net Profit</div></div>`;
+  document.getElementById('dp').innerHTML=pending>0
+    ?`<div class="abar abr"><span class="abarl">${XI.warn} Payment Pending</span><span class="abarv">${fmt(pending)}</span></div>`:''
+  ;
+  const vc=document.getElementById('vc');vc.innerHTML='';
+  VEHS.forEach(reg=>{
+    const vt=trips.filter(t=>t.vehicleReg===reg);
+    const vrev=vt.reduce((s,t)=>s+calcT(t).rev,0);
+    const vp=vt.reduce((s,t)=>s+calcT(t).profit,0);
+    const vact=vt.filter(t=>t.status==='active').length;
+    vc.insertAdjacentHTML('beforeend',`
+      <div class="vc" onclick='filterTrips("${reg}");showScreen("s-trips")'>
+        <div class="vcs"></div>
+        <div class="vcbg">${XI.truck}</div>
+        <div style="padding-left:10px">
+          <div class="vreg">${reg}</div>
+          <div class="vmeta">${vt.length} trips &nbsp;·&nbsp; ${vact} active</div>
+          <div class="vstats">
+            <div><div class="vsv ctl2">${fmt(vrev)}</div><div class="vsl">Revenue</div></div>
+            <div><div class="vsv" style="color:${vp>=0?'var(--em)':'var(--red)'}">${fmt(vp)}</div><div class="vsl">Profit</div></div>
+          </div>
+        </div>
+      </div>`);
+  });
+  const rec=[...trips].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  document.getElementById('rl').innerHTML=rec.length===0
+    ?`<div class="empty">${XI.truck}<div class="etxt">No trips recorded yet.<br>Tap <strong>+</strong> to add your first trip.</div></div>`
+    :rec.map(tripHTML).join('');
+}
+function tripHTML(t){
+  const c=calcT(t),legs=t.legs||[];
+  const routes=legs.map(l=>`${l.from||'?'} - ${l.to||'?'}`).join('  ·  ');
+  return`<div class="ti" onclick="openDetail('${t.id}')">
+    <div class="tih"><span class="tireg">${t.vehicleReg}</span><span class="tidat">${fmtD(t.date)}</span></div>
+    <div class="tirt">${routes||'No route set'}</div>
+    <div class="tift">
+      <span class="tiam ctl2">${fmt(c.rev)}</span>
+      <span class="dot">&#8226;</span>
+      <span class="tiam" style="color:${c.profit>=0?'var(--em)':'var(--red)'}">${c.profit>=0?'+':''}${fmt(c.profit)}</span>
+      <span style="margin-left:auto"><span class="badge ${t.status==='active'?'bact':'bdone'}">${t.status==='active'?'Active':'Done'}</span></span>
+    </div>
+    ${c.pending>0?`<div style="margin-top:5px;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--red)">Pending: ${fmt(c.pending)}</div>`:''}
+  </div>`
+}
+// TRIPS LIST
+function renderTrips(){
+  let ts=getTrips();
+  if(curFilter==='active')ts=ts.filter(t=>t.status==='active');
+  else if(curFilter==='completed')ts=ts.filter(t=>t.status==='completed');
+  else if(curFilter!=='all')ts=ts.filter(t=>t.vehicleReg===curFilter);
+  ts=ts.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('at').innerHTML=ts.length===0
+    ?`<div class="empty">${XI.trips}<div class="etxt">No trips found.</div></div>`
+    :ts.map(tripHTML).join('');
+  document.querySelectorAll('#vf .chip').forEach(c=>c.classList.toggle('active',c.dataset.v===curFilter));
+}
+function filterTrips(v){curFilter=v;if(curScreen==='s-trips')renderTrips()}
+// FORM STATE
+let fLegs=[],fDiesel=[],fOthers=[],fPays=[];
+function openNewTrip(){
+  editId=null;fLegs=[];fDiesel=[{id:uid(),amt:'',note:''}];fOthers=[];fPays=[];
+  document.getElementById('fttl').innerHTML='New <span>Trip</span>';
+  document.getElementById('fv').value='';
+  document.getElementById('fd').value=new Date().toISOString().split('T')[0];
+  document.getElementById('fst').value='active';
+  ['fdr','fft','fcm','fdf'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fn').value='';
+  renderLegs();renderDiesel();renderOthers();renderPays();
+  showScreen('s-form');
+}
+function openEdit(id){
+  const t=getTrips().find(x=>x.id===id);if(!t)return;
+  editId=id;
+  fLegs=JSON.parse(JSON.stringify(t.legs||[]));
+  fDiesel=JSON.parse(JSON.stringify((t.expenses||{}).diesel||[]));
+  if(!fDiesel.length)fDiesel=[{id:uid(),amt:'',note:''}];
+  fOthers=JSON.parse(JSON.stringify((t.expenses||{}).others||[]));
+  fPays=JSON.parse(JSON.stringify(t.payments||[]));
+  document.getElementById('fttl').innerHTML='Edit <span>Trip</span>';
+  document.getElementById('fv').value=t.vehicleReg;
+  document.getElementById('fd').value=t.date;
+  document.getElementById('fst').value=t.status||'active';
+  document.getElementById('fdr').value=(t.expenses||{}).driver||'';
+  document.getElementById('fft').value=(t.expenses||{}).fastag||'';
+  document.getElementById('fcm').value=(t.expenses||{}).com||'';
+  document.getElementById('fdf').value=(t.expenses||{}).def||'';
+  document.getElementById('fn').value=t.notes||'';
+  renderLegs();renderDiesel();renderOthers();renderPays();
+  showScreen('s-form');
+}
+// LEGS
+function addLeg(dir){fLegs.push({id:uid(),dir,from:'',to:'',qty:'',rate:''});renderLegs()}
+function remLeg(id){fLegs=fLegs.filter(l=>l.id!==id);renderLegs()}
+function upLeg(id,f,v){const l=fLegs.find(x=>x.id===id);if(l){l[f]=v;if(f==='qty'||f==='rate')updLC(id)}}
+function updLC(id){
+  const l=fLegs.find(x=>x.id===id),el=document.getElementById('lc'+id);
+  if(!l||!el)return;
+  const q=parseFloat(l.qty)||0,r=parseFloat(l.rate)||0;
+  el.innerHTML=q&&r
+    ?`<span style="font-size:.72rem;color:var(--txt2)">${q} MT x Rs.${fmtN(r)}</span><span class="lcalcr">${fmt(q*r)}</span>`
+    :`<span style="font-size:.72rem;color:var(--txt3)">Enter quantity and rate to see total</span>`;
+}
+function renderLegs(){
+  const c=document.getElementById('lc');
+  if(!fLegs.length){c.innerHTML=`<div style="text-align:center;color:var(--txt3);font-size:.8rem;padding:16px 0">No legs added yet.</div>`;return}
+  c.innerHTML=fLegs.map((l,i)=>`
+    <div class="lcard">
+      <button type="button" class="dleg" onclick="remLeg('${l.id}')">${XI.x}</button>
+      <div class="ltag ${l.dir==='up'?'ltup':'ltdn'}">
+        ${l.dir==='up'
+          ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="m18 15-6-6-6 6"/></svg> UP TRIP'
+          :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><path d="m6 9 6 6 6-6"/></svg> DOWN TRIP'}
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">From</label><input class="fi" placeholder="Origin city" value="${l.from}" oninput="upLeg('${l.id}','from',this.value)"></div>
+        <div class="fg"><label class="fl">To</label><input class="fi" placeholder="Destination" value="${l.to}" oninput="upLeg('${l.id}','to',this.value)"></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Quantity (MT)</label><input type="number" class="fi" placeholder="0.0" step="0.1" value="${l.qty}" oninput="upLeg('${l.id}','qty',this.value)"></div>
+        <div class="fg"><label class="fl">Rate (Rs./MT)</label><input type="number" class="fi" placeholder="0" value="${l.rate}" oninput="upLeg('${l.id}','rate',this.value)"></div>
+      </div>
+      <div class="lcalc" id="lc${l.id}">
+        ${l.qty&&l.rate
+          ?`<span style="font-size:.72rem;color:var(--txt2)">${l.qty} MT x Rs.${fmtN(l.rate)}</span><span class="lcalcr">${fmt(l.qty*l.rate)}</span>`
+          :`<span style="font-size:.72rem;color:var(--txt3)">Enter quantity and rate to see total</span>`}
+      </div>
+    </div>`).join('');
+}
+// DIESEL
+function addDiesel(){fDiesel.push({id:uid(),amt:'',note:''});renderDiesel()}
+function remDiesel(id){fDiesel=fDiesel.filter(d=>d.id!==id);renderDiesel()}
+function upDiesel(id,f,v){const d=fDiesel.find(x=>x.id===id);if(d){d[f]=v;calcDT()}}
+function calcDT(){const tot=fDiesel.reduce((s,d)=>s+(parseFloat(d.amt)||0),0);const el=document.getElementById('dt');if(el)el.textContent=tot>0?`Total Diesel: ${fmt(tot)}`:''}
+function renderDiesel(){
+  document.getElementById('dl').innerHTML=fDiesel.map((d,i)=>`
+    <div class="eitem">
+      <span class="enum">#${i+1}</span>
+      <input type="number" placeholder="Amount (Rs.)" value="${d.amt}" oninput="upDiesel('${d.id}','amt',this.value)" style="max-width:110px">
+      <input type="text" placeholder="Location / note" value="${d.note}" oninput="upDiesel('${d.id}','note',this.value)">
+      <button type="button" class="edel" onclick="remDiesel('${d.id}')">${XI.x}</button>
+    </div>`).join('');
+  calcDT();
+}
+// OTHERS
+function addOther(){fOthers.push({id:uid(),desc:'',amt:''});renderOthers()}
+function remOther(id){fOthers=fOthers.filter(o=>o.id!==id);renderOthers()}
+function upOther(id,f,v){const o=fOthers.find(x=>x.id===id);if(o)o[f]=v}
+function renderOthers(){
+  document.getElementById('ol').innerHTML=fOthers.length===0
+    ?`<div style="color:var(--txt3);font-size:.78rem;text-align:center;padding:8px 0">No other expenses.</div>`
+    :fOthers.map((o,i)=>`
+      <div class="eitem">
+        <span class="enum">#${i+1}</span>
+        <input type="text" placeholder="Description" value="${o.desc}" oninput="upOther('${o.id}','desc',this.value)" style="flex:1.8">
+        <input type="number" placeholder="Rs. Amount" value="${o.amt}" oninput="upOther('${o.id}','amt',this.value)" style="max-width:95px">
+        <button type="button" class="edel" onclick="remOther('${o.id}')">${XI.x}</button>
+      </div>`).join('');
+}
+// PAYMENTS
+function addPay(type){fPays.push({id:uid(),type,amt:'',date:new Date().toISOString().split('T')[0],note:''});renderPays()}
+function remPay(id){fPays=fPays.filter(p=>p.id!==id);renderPays()}
+function upPay(id,f,v){const p=fPays.find(x=>x.id===id);if(p)p[f]=v}
+function renderPays(){
+  document.getElementById('pl').innerHTML=fPays.length===0
+    ?`<div style="color:var(--txt3);font-size:.78rem;text-align:center;padding:8px 0">No payments recorded yet.</div>`
+    :fPays.map((p,i)=>`
+      <div class="eitem" style="flex-wrap:wrap;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px;width:100%">
+          <span class="pill ${p.type==='advance'?'padv':'pbal'}">${p.type==='advance'?'ADV':'BAL'}</span>
+          <input type="number" placeholder="Amount Rs." value="${p.amt}" oninput="upPay('${p.id}','amt',this.value)" style="max-width:115px">
+          <input type="date" value="${p.date}" oninput="upPay('${p.id}','date',this.value)" style="font-size:.73rem;max-width:130px">
+          <button type="button" class="edel" onclick="remPay('${p.id}')">${XI.x}</button>
+        </div>
+        <input type="text" placeholder="Note (optional)" value="${p.note}" oninput="upPay('${p.id}','note',this.value)"
+          style="background:transparent;border:none;color:var(--txt2);font-size:.74rem;outline:none;padding-left:4px;width:100%;margin-top:2px">
+      </div>`).join('');
+}
+// SAVE
+function saveTrip(){
+  try{
+    const veh=document.getElementById('fv').value;
+    if(!veh){toast('Please select a vehicle');return}
+    const dt=document.getElementById('fd').value;
+    if(!dt){toast('Please select a start date');return}
+    if(!fLegs.length){toast('Add at least one trip leg');return}
+    const t={
+      id:editId||uid(),vehicleReg:veh,date:dt,
+      status:document.getElementById('fst').value||'active',
+      legs:JSON.parse(JSON.stringify(fLegs)),
+      expenses:{
+        driver:parseFloat(document.getElementById('fdr').value)||0,
+        fastag:parseFloat(document.getElementById('fft').value)||0,
+        com:parseFloat(document.getElementById('fcm').value)||0,
+        def:parseFloat(document.getElementById('fdf').value)||0,
+        diesel:JSON.parse(JSON.stringify(fDiesel)),
+        others:JSON.parse(JSON.stringify(fOthers))
+      },
+      payments:JSON.parse(JSON.stringify(fPays)),
+      notes:document.getElementById('fn').value||'',
+      updatedAt:new Date().toISOString()
+    };
+    const ts=getTrips();
+    if(editId){const idx=ts.findIndex(x=>x.id===editId);if(idx!==-1){t.createdAt=ts[idx].createdAt;ts[idx]=t}else{t.createdAt=new Date().toISOString();ts.unshift(t)}}
+    else{t.createdAt=new Date().toISOString();ts.unshift(t)}
+    saveTrips(ts);
+    const msg=editId?'Trip updated successfully':'Trip saved successfully';
+    editId=null;toast(msg);openDetail(t.id);
+  }catch(err){console.error(err);toast('Error: '+err.message)}
+}
+// DETAIL
+function openDetail(id){
+  const t=getTrips().find(x=>x.id===id);if(!t)return;
+  document.getElementById('dveh').textContent=t.vehicleReg;
+  document.getElementById('dedit').onclick=()=>openEdit(id);
+  document.getElementById('ddel').onclick=()=>confirmDel(id);
+  renderDetail(t);showScreen('s-detail');
+}
+function renderDetail(t){
+  const c=calcT(t),legs=t.legs||[],ex=t.expenses||{},pays=t.payments||[];
+  let h='';
+  // DIARY
+  h+=`<div class="diary"><div class="dhdr"><span class="ddate">${fmtDd(t.date)}</span><span class="dveh">${t.vehicleReg}</span></div>`;
+  legs.forEach(l=>{
+    const a=(parseFloat(l.qty)||0)*(parseFloat(l.rate)||0);
+    h+=`<div class="dr"><span class="drl">(${l.dir.toUpperCase()}) ${l.from||'?'} - ${l.to||'?'}</span></div>
+    <div class="dr dri"><span class="drl">${l.qty||0} MT x Rs.${fmtN(l.rate)}/MT</span><span class="drv">${fmt(a)}</span></div>`;
+  });
+  h+=`<hr class="ddiv"><div class="dr drtot"><span class="drl">Total Revenue</span><span class="drv">${fmt(c.rev)}</span></div>
+  <div class="dr drexp"><span class="drl">Total Expenses</span><span class="drv">- ${fmt(c.totalExp)}</span></div>
+  <hr class="ddiv"><div class="dr ${c.profit>=0?'drpro':'drlos'}"><span class="drl">${c.profit>=0?'PROFIT':'LOSS'}</span><span class="drv">${fmt(Math.abs(c.profit))} approx</span></div></div>`;
+  // EXPENSES
+  h+=`<div class="card"><div class="chd"><div class="ctl">${XI.money} Expense Breakdown</div><span class="mono fsm crd fw7">${fmt(c.totalExp)}</span></div><div>`;
+  const rows=[{l:'Driver Salary',v:ex.driver},{l:'Fastag',v:ex.fastag},{l:'Commission',v:ex.com},{l:'DEF / AdBlue',v:ex.def}].filter(r=>r.v>0);
+  rows.forEach(r=>{h+=drow(r.l,r.v,'var(--txt)')});
+  if((ex.diesel||[]).some(d=>d.amt)){
+    h+=`<div class="drow" style="background:var(--bdim)"><span class="drowl">${XI.drop} Diesel (${(ex.diesel||[]).filter(d=>d.amt).length} entries)</span><span class="drowv cbl fw7">${fmt(c.diesel)}</span></div>`;
+    (ex.diesel||[]).forEach((d,i)=>{if(d.amt)h+=`<div class="drow" style="padding-left:28px"><span style="font-size:.74rem;color:var(--txt3)">Entry #${i+1}${d.note?' · '+d.note:''}</span><span class="mono" style="font-size:.76rem;color:var(--txt2)">${fmt(d.amt)}</span></div>`});
+  }
+  (ex.others||[]).filter(o=>o.amt).forEach(o=>{h+=drow(o.desc||'Other expense',o.amt,'var(--txt)')});
+  h+=`<div class="drow" style="background:var(--rdim)"><span style="font-size:.8rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--red)">Total Expenses</span><span class="mono fw7" style="font-size:.9rem;color:var(--red)">${fmt(c.totalExp)}</span></div></div></div>`;
+  // PAYMENT STATUS
+  const adv=pays.filter(p=>p.type==='advance').reduce((s,p)=>s+(parseFloat(p.amt)||0),0);
+  const bal=pays.filter(p=>p.type==='balance').reduce((s,p)=>s+(parseFloat(p.amt)||0),0);
+  const pct=c.rev>0?Math.min(100,(c.recd/c.rev)*100):0;
+  h+=`<div class="card"><div class="chd"><div class="ctl">${XI.card} Payment Status</div><span class="badge ${c.pending<=0?'bdone':'bact'}">${c.pending<=0?'Cleared':'Pending'}</span></div>
+  <div class="cbdy">
+    <div class="prow" style="border-top:none;padding-top:0"><span class="prowl">Total Freight</span><span class="prowv">${fmt(c.rev)}</span></div>
+    <div class="pbar"><div class="pbarf" style="width:${pct}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--txt3);margin-bottom:10px;font-family:'DM Mono',monospace"><span>${Math.round(pct)}% received</span><span>${fmt(c.recd)} of ${fmt(c.rev)}</span></div>
+    <div class="prow"><span class="prowl" style="color:var(--amb)">Advance</span><span class="prowv">${fmt(adv)}</span></div>
+    <div class="prow"><span class="prowl" style="color:var(--em)">Balance Received</span><span class="prowv">${fmt(bal)}</span></div>
+    <div class="prow"><span class="prowl">Total Received</span><span class="prowv fw7">${fmt(c.recd)}</span></div>
+    <div class="prow" style="margin-top:4px"><span style="font-weight:700;font-size:.85rem;color:${c.pending>0?'var(--red)':'var(--em)'}">${c.pending>0?'Pending Balance':'Fully Settled'}</span><span class="mono fw7" style="font-size:.92rem;color:${c.pending>0?'var(--red)':'var(--em)'}">${c.pending>0?fmt(c.pending):'—'}</span></div>`;
+  if(pays.length){
+    h+=`<div class="sep"></div><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:8px">Payment History</div>`;
+    pays.forEach(p=>{
+      h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <span class="pill ${p.type==='advance'?'padv':'pbal'}">${p.type==='advance'?'ADV':'BAL'}</span>
+        <span class="mono fsm fw7">${fmt(p.amt)}</span>
+        <span style="margin-left:auto;font-size:.68rem;color:var(--txt3)">${fmtD(p.date)}</span>
+      </div>${p.note?`<div style="padding-left:52px;font-size:.7rem;color:var(--txt3);margin-top:-4px;margin-bottom:5px">${p.note}</div>`:''}`;
+    });
+  }
+  h+=`</div></div>`;
+  if(t.notes)h+=`<div class="card"><div class="chd"><div class="ctl">${XI.note} Notes</div></div><div class="cbdy" style="font-size:.84rem;color:var(--txt2);line-height:1.6">${t.notes}</div></div>`;
+  h+=`<div style="display:flex;gap:10px;margin-bottom:20px">
+    <button class="btn btns" style="flex:1" onclick="openEdit('${t.id}')">${XI.edit} Edit Trip</button>
+    ${t.status==='active'?`<button class="btn btng" style="flex:1" onclick="markDone('${t.id}')">${XI.chk} Mark Complete</button>`:''}
+  </div>`;
+  document.getElementById('dc').innerHTML=h;
+}
+function drow(label,val,col){return`<div class="drow"><span class="drowl">${label}</span><span class="drowv" style="color:${col||'var(--txt)'}">${fmt(val)}</span></div>`}
+function markDone(id){const ts=getTrips(),t=ts.find(x=>x.id===id);if(t){t.status='completed';t.updatedAt=new Date().toISOString();saveTrips(ts);renderDetail(t);toast('Trip marked as complete')}}
+function confirmDel(id){
+  modal(`<div class="mttl"><span>Delete Trip?</span><div class="mcls" onclick="closeModal()">${XI.x}</div></div>
+    <p style="color:var(--txt2);font-size:.86rem;margin-bottom:20px;line-height:1.6">This will permanently delete this trip record and cannot be undone.</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btns" style="flex:1" onclick="closeModal()">Cancel</button>
+      <button class="btn btnd" style="flex:1" onclick="delTrip('${id}')">Delete</button>
+    </div>`);
+}
+function delTrip(id){saveTrips(getTrips().filter(t=>t.id!==id));closeModal();toast('Trip deleted');navHistory=[];showScreen('s-trips',false)}
+// REPORTS
+function setPeriod(p){period=p;document.querySelectorAll('#pch .chip').forEach(c=>c.classList.toggle('active',c.dataset.p===p));renderReports()}
+function filteredRep(){
+  let ts=getTrips();const now=new Date();
+  if(period==='month')ts=ts.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});
+  else if(period==='3month'){const c=new Date(now);c.setMonth(c.getMonth()-3);ts=ts.filter(t=>new Date(t.date)>=c)}
+  else if(period==='year')ts=ts.filter(t=>new Date(t.date).getFullYear()===now.getFullYear());
+  return ts;
+}
+function renderReports(){
+  const ts=filteredRep(),el=document.getElementById('rc');
+  if(!ts.length){el.innerHTML=`<div class="empty">${XI.chart}<div class="etxt">No data for selected period.</div></div>`;return}
+  const rev=ts.reduce((s,t)=>s+calcT(t).rev,0);
+  const exp=ts.reduce((s,t)=>s+calcT(t).totalExp,0);
+  const profit=ts.reduce((s,t)=>s+calcT(t).profit,0);
+  const pend=ts.reduce((s,t)=>s+Math.max(0,calcT(t).pending),0);
+  const diesel=ts.reduce((s,t)=>s+calcT(t).diesel,0);
+  let h=`<div class="sgrid">
+    <div class="sb"><div class="sbi cbl">${XI.trips}</div><div class="sbv cbl">${ts.length}</div><div class="sbl">Trips</div></div>
+    <div class="sb"><div class="sbi ctl2">${XI.money}</div><div class="sbv ctl2" style="font-size:.82rem">${fmt(rev)}</div><div class="sbl">Revenue</div></div>
+    <div class="sb"><div class="sbi crd">${XI.money}</div><div class="sbv crd" style="font-size:.82rem">${fmt(exp)}</div><div class="sbl">Expenses</div></div>
+    <div class="sb"><div class="sbi" style="color:${profit>=0?'var(--em)':'var(--red)'}">${XI.chart}</div><div class="sbv" style="color:${profit>=0?'var(--em)':'var(--red)'};font-size:.82rem">${fmt(profit)}</div><div class="sbl">Net Profit</div></div>
+  </div>`;
+  if(pend>0)h+=`<div class="abar abr"><span class="abarl">${XI.warn} Total Payment Pending</span><span class="abarv">${fmt(pend)}</span></div>`;
+  h+=`<div class="abar abb"><span class="abarl">${XI.drop} Total Diesel Spend</span><span class="abarv">${fmt(diesel)}</span></div>`;
+  h+=`<div class="sch">Per Vehicle</div>`;
+  VEHS.forEach(reg=>{
+    const vt=ts.filter(t=>t.vehicleReg===reg);if(!vt.length)return;
+    const vr=vt.reduce((s,t)=>s+calcT(t).rev,0);
+    const ve=vt.reduce((s,t)=>s+calcT(t).totalExp,0);
+    const vp=vt.reduce((s,t)=>s+calcT(t).profit,0);
+    h+=`<div class="card"><div class="chd"><span class="mono" style="font-size:.8rem;color:var(--blue);letter-spacing:1.5px">${reg}</span><span style="font-size:.7rem;color:var(--txt2)">${vt.length} trips</span></div>
+    <div class="cbdy">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span class="fsm csb">Revenue</span><span class="mono fsm ctl2">${fmt(vr)}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span class="fsm csb">Expenses</span><span class="mono fsm crd">${fmt(ve)}</span></div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid var(--bdr);padding-top:9px"><span style="font-size:.8rem;font-weight:700;letter-spacing:.5px">NET PROFIT</span><span class="mono fw7" style="font-size:.88rem;color:${vp>=0?'var(--em)':'var(--red)'}">${fmt(vp)}</span></div>
+    </div></div>`;
+  });
+  h+=`<div class="sch" style="margin-top:18px">Trip List</div><div class="card">`;
+  [...ts].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{h+=tripHTML(t)});
+  h+=`</div><button class="btn btnp btnfw" onclick="exportExcel()" style="margin-top:4px;margin-bottom:20px">${XI.dl} Export to Excel</button>`;
+  el.innerHTML=h;
+}
+// EXPORT
+function exportExcel(){
+  const ts=filteredRep();if(!ts.length){toast('No data to export');return}
+  const wb=XLSX.utils.book_new();
+  const s1=[['TRIPMASTER PRO - TRIP SUMMARY REPORT'],[`Generated: ${new Date().toLocaleDateString('en-IN')}`],[''],['Date','Vehicle','UP Route','DOWN Route','Revenue (Rs.)','Expenses (Rs.)','Net Profit (Rs.)','Pending (Rs.)','Status']];
+  ts.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+    const c=calcT(t),legs=t.legs||[];
+    const up=legs.filter(l=>l.dir==='up').map(l=>`${l.from}-${l.to} (${l.qty}MT x Rs.${l.rate})`).join('; ');
+    const dn=legs.filter(l=>l.dir==='down').map(l=>`${l.from}-${l.to} (${l.qty}MT x Rs.${l.rate})`).join('; ');
+    s1.push([fmtD(t.date),t.vehicleReg,up||'-',dn||'-',c.rev,c.totalExp,c.profit,Math.max(0,c.pending),t.status]);
+  });
+  const ws1=XLSX.utils.aoa_to_sheet(s1);ws1['!cols']=[12,14,35,35,16,16,16,14,12].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws1,'Trip Summary');
+  const s2=[['Date','Vehicle','Route','Driver (Rs.)','Fastag (Rs.)','Diesel (Rs.)','DEF (Rs.)','Commission (Rs.)','Others (Rs.)','Total (Rs.)']];
+  ts.forEach(t=>{const c=calcT(t),ex=t.expenses||{},legs=t.legs||[];const route=legs.map(l=>`${l.from}-${l.to}`).join('; ');s2.push([fmtD(t.date),t.vehicleReg,route,ex.driver||0,ex.fastag||0,c.diesel,ex.def||0,ex.com||0,c.others,c.totalExp])});
+  const ws2=XLSX.utils.aoa_to_sheet(s2);ws2['!cols']=[12,14,28,12,12,12,10,14,12,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws2,'Expense Breakdown');
+  const s3=[['Trip Date','Vehicle','Entry #','Amount (Rs.)','Note']];
+  ts.forEach(t=>{((t.expenses||{}).diesel||[]).forEach((d,i)=>{if(d.amt)s3.push([fmtD(t.date),t.vehicleReg,i+1,parseFloat(d.amt)||0,d.note||''])})});
+  if(s3.length>1){const ws3=XLSX.utils.aoa_to_sheet(s3);ws3['!cols']=[12,14,10,14,22].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws3,'Diesel Log')}
+  const s4=[['Date','Vehicle','Route','Freight (Rs.)','Advance (Rs.)','Balance (Rs.)','Received (Rs.)','Pending (Rs.)']];
+  ts.forEach(t=>{const c=calcT(t),pays=t.payments||[],legs=t.legs||[];const adv=pays.filter(p=>p.type==='advance').reduce((s,p)=>s+(parseFloat(p.amt)||0),0);const bal=pays.filter(p=>p.type==='balance').reduce((s,p)=>s+(parseFloat(p.amt)||0),0);const route=legs.map(l=>`${l.from}-${l.to}`).join('; ');s4.push([fmtD(t.date),t.vehicleReg,route,c.rev,adv,bal,c.recd,Math.max(0,c.pending)])});
+  const ws4=XLSX.utils.aoa_to_sheet(s4);ws4['!cols']=[12,14,28,14,14,14,14,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws4,'Payment Tracking');
+  XLSX.writeFile(wb,`TripMaster_${new Date().toISOString().split('T')[0]}.xlsx`);
+  toast('Excel report downloaded');
+}
+// SETTINGS
+function showSettings(){
+  modal(`<div class="mttl"><span>Settings</span><div class="mcls" onclick="closeModal()">${XI.x}</div></div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:14px">
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--txt2);margin-bottom:10px">Registered Vehicles</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.84rem;color:var(--blue);padding:5px 0;border-bottom:1px solid var(--bdr)">WB53C6771</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.84rem;color:var(--blue);padding:5px 0 0">WB53C7823</div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:14px">
+      <div style="font-weight:700;margin-bottom:4px;font-size:.9rem">TripMaster Pro</div>
+      <div style="font-size:.78rem;color:var(--txt2)">Goods Transport Trip Manager</div>
+      <div style="font-size:.71rem;color:var(--txt3);margin-top:8px;line-height:1.5">All data stored locally. Use Excel Export to create backups.</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:14px">
+      <div><div style="font-weight:600;font-size:.88rem">Display Theme</div><div style="font-size:.73rem;color:var(--txt2);margin-top:2px">Currently: ${isDark?'Dark':'Light'}</div></div>
+      <button class="btn btns btnsm" onclick="toggleTheme();closeModal()">Switch Theme</button>
+    </div>
+    <button class="btn btnp btnfw" onclick="exportExcel();closeModal()">${XI.dl} Export All to Excel</button>
+    <button class="btn btnd btnfw" onclick="confirmClear()">Clear All Data</button>
+  </div>`);
+}
+function confirmClear(){
+  modal(`<div class="mttl"><span>Clear All Data?</span><div class="mcls" onclick="closeModal()">${XI.x}</div></div>
+    <p style="color:var(--txt2);font-size:.86rem;margin-bottom:20px;line-height:1.6">All trip records will be permanently deleted. Export to Excel first as a backup.</p>
+    <div style="display:flex;gap:10px"><button class="btn btns" style="flex:1" onclick="closeModal()">Cancel</button><button class="btn btnd" style="flex:1" onclick="clearAll()">Delete All</button></div>`);
+}
+function clearAll(){localStorage.removeItem(SK);closeModal();toast('All data cleared');navHistory=[];showScreen('s-dash',false)}
+// INIT
+document.getElementById('fd').value=new Date().toISOString().split('T')[0];
+applyTheme();renderDash();
+</script>
+</body>
+</html>
